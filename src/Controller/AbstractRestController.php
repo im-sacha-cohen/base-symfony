@@ -20,7 +20,7 @@ abstract class AbstractRestController extends AbstractController
     {
         $get = $this->service->findAll();
 
-        return new JsonResponse($get, 200);
+        return new JsonResponse($get, $get['status']);
     }
 
     #[Route('/{secretId}', name: '_get-by', methods: ['OPTIONS', 'GET'])]
@@ -28,7 +28,7 @@ abstract class AbstractRestController extends AbstractController
     {
         $get = $this->service->findOneBy(['secretId' => $secretId]);
 
-        return new JsonResponse($get, 200);
+        return new JsonResponse($get, $get['status']);
     }
 
     #[Route('', name: '_new', methods: ['OPTIONS', 'POST'])]
@@ -42,15 +42,15 @@ abstract class AbstractRestController extends AbstractController
     #[Route('/{secretId}', name: '_update', methods: ['OPTIONS', 'PUT'])]
     public function update(string $secretId, Request $request): JsonResponse
     {
-        $put = $this->service->put($request, $secretId);
+        $put = $this->service->put($request, ['secretId' => $secretId]);
 
-        return new JsonResponse($this->service->serialize($put), 200);
+        return new JsonResponse($put, $put['status']);
     }
 
     #[Route('/{secretId}', name: '_delete', methods: ['OPTIONS', 'DELETE'])]
     public function delete(string $secretId): JsonResponse
     {
-        $delete = $this->service->remove($secretId);
+        $delete = $this->service->remove(['secretId' => $secretId]);
 
         return new JsonResponse($delete, $delete['status']);
     }

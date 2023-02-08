@@ -52,7 +52,7 @@ abstract class AbstractRestService {
      */
     public function findBy(array $criteria, ?array $orderBy = null, ?int $limit = null): array {
         $objects = $this->repo->findBy($criteria, $orderBy, $limit);
-
+        
         foreach ($objects as $object) {
             $ret[] = $this->serialize($object);
 
@@ -90,7 +90,7 @@ abstract class AbstractRestService {
      */
     public function findOneBy(array $criteria, ?array $orderBy = null, ?bool $returnSerialized = false): mixed {
         $object = $this->repo->findOneBy($criteria, $orderBy);
-
+        
         if ($object !== null) {
             if ($returnSerialized) {
                 $ret[] = $this->serialize($object);
@@ -152,35 +152,45 @@ abstract class AbstractRestService {
 
     /**
      * @param Request $request
-     * @param string $secretId
+     * @param array $criteria
      * 
-     * @return object
+     * @return array
      */
-    public function put(Request $request, string $secretId): object {
+    public function put(Request $request, array $criteria): array {
         $data = $this->getDataFromRequest($request);
         $dataSerialized = $this->denormalize($data);
-        $object = $this->findOneBy(['secretId' => $secretId]);
+        $object = $this->findOneBy($criteria);
         
-        $errors = $this->validator->validate($dataSerialized);
+        if ($object !== null) {
+            $errors = $this->validator->validate($dataSerialized);
         
-        if (count($errors) > 0) {
-            $tmp = [];
-            
-            foreach($errors as $error) {
-                // Only add error in array if the key is in the payload. Instead, we consider the value fully constrained by new()
-                if (isset($data[$error->getPropertyPath()])) {
-                    $tmp[] = $error->getMessage();
+            if (count($errors) > 0) {
+                $tmp = [];
+                
+                foreach($errors as $error) {
+                    // Only add error in array if the key is in the payload. Instead, we consider the value fully constrained by new()
+                    if (isset($data[$error->getPropertyPath()])) {
+                        $tmp[] = $error->getMessage();
+                    }
+                }
+
+                if (count($tmp) > 0) {
+                    throw new Error(implode(", ", $tmp));
                 }
             }
 
-            if (count($tmp) > 0) {
-                throw new Error(implode(", ", $tmp));
-            }
+            $this->update($object, $data);
+
+            return array(
+                'status' => 200,
+                'object' => $this->serialize($object)
+            );
         }
 
-        $this->update($object, $data);
-
-        return $object;
+        return array(
+            'status' => 400,
+            'message' => 'Not found'
+        );
     }
 
     /**
@@ -211,12 +221,12 @@ abstract class AbstractRestService {
     }
 
     /**
-     * @param string $secretId
+     * @param array $criteria
      * 
      * @return array
      */
-    public function remove(string $secretId): array {
-        $object = $this->findOneBy(['secretId' => $secretId]);
+    public function remove(array $criteria): array {
+        $object = $this->findOneBy($criteria);
         
         if ($object !== null) {
             $this->delete($object);
