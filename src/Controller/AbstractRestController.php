@@ -6,7 +6,6 @@ use App\Service\AbstractRestService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 abstract class AbstractRestController extends AbstractController
@@ -38,5 +37,21 @@ abstract class AbstractRestController extends AbstractController
         $post = $this->service->new($request);
 
         return new JsonResponse($this->service->serialize($post), 201);
+    }
+
+    #[Route('/{secretId}', name: '_update', methods: ['OPTIONS', 'PUT'])]
+    public function update(string $secretId, Request $request): JsonResponse
+    {
+        $put = $this->service->put($request, $secretId);
+
+        return new JsonResponse($this->service->serialize($put), 200);
+    }
+
+    #[Route('/{secretId}', name: '_delete', methods: ['OPTIONS', 'DELETE'])]
+    public function delete(string $secretId): JsonResponse
+    {
+        $delete = $this->service->remove($secretId);
+
+        return new JsonResponse($delete, $delete['status']);
     }
 }

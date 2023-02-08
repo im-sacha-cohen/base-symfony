@@ -151,6 +151,39 @@ abstract class AbstractRestService {
     }
 
     /**
+     * @param Request $request
+     * @param string $secretId
+     * 
+     * @return object
+     */
+    public function put(Request $request, string $secretId): object {
+        $data = $this->getDataFromRequest($request);
+        $dataSerialized = $this->denormalize($data);
+        $object = $this->findOneBy(['secretId' => $secretId]);
+        
+        $errors = $this->validator->validate($dataSerialized);
+        
+        if (count($errors) > 0) {
+            $tmp = [];
+            
+            foreach($errors as $error) {
+                // Only add error in array if the key is in the payload. Instead, we consider the value fully constrained by new()
+                if (isset($data[$error->getPropertyPath()])) {
+                    $tmp[] = $error->getMessage();
+                }
+            }
+
+            if (count($tmp) > 0) {
+                throw new Error(implode(", ", $tmp));
+            }
+        }
+
+        $this->update($object, $data);
+
+        return $object;
+    }
+
+    /**
      * @param object $object
      * @param array $data
      * 
@@ -175,6 +208,28 @@ abstract class AbstractRestService {
         $this->emi->flush();
 
         return null;
+    }
+
+    /**
+     * @param string $secretId
+     * 
+     * @return array
+     */
+    public function remove(string $secretId): array {
+        $object = $this->findOneBy(['secretId' => $secretId]);
+        
+        if ($object !== null) {
+            $this->delete($object);
+
+            return array(
+                'status' => 200
+            );
+        }
+
+        return array(
+            'status' => 400,
+            'message' => 'This object does not exist.'
+        );
     }
 
     /**

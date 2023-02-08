@@ -2,7 +2,6 @@
 
 namespace App\Controller;
 
-use App\Service\AbstractRestService;
 use App\Service\UserService;
 use Symfony\Component\Routing\Annotation\Route;
 
