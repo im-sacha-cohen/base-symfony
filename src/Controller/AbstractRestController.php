@@ -36,7 +36,7 @@ abstract class AbstractRestController extends AbstractController
     {
         $post = $this->service->new($request);
 
-        return new JsonResponse($this->service->serialize($post), 201);
+        return new JsonResponse($post, $post['status']);
     }
 
     #[Route('/{secretId}', name: '_update', methods: ['OPTIONS', 'PUT'])]

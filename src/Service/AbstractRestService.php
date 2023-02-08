@@ -117,9 +117,9 @@ abstract class AbstractRestService {
     /**
      * @param Request $request
      * 
-     * @return object
+     * @return array
      */
-    public function new(Request $request): object {
+    public function new(Request $request): array {
         $data = $this->getDataFromRequest($request);
         $object = $this->denormalize($data);
 
@@ -137,7 +137,10 @@ abstract class AbstractRestService {
 
         $this->create($object);
 
-        return $object;
+        return array(
+            'status' => 201,
+            'object' => $this->serialize($object)
+        );
     }
 
     /**
