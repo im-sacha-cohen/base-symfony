@@ -53,8 +53,12 @@ abstract class AbstractRestService {
     public function findBy(array $criteria, ?array $orderBy = null, ?int $limit = null): array {
         $objects = $this->repo->findBy($criteria, $orderBy, $limit);
         
-        foreach ($objects as $object) {
-            $ret[] = $this->serialize($object);
+        if ($objects !== null) {
+            $ret = [];
+            
+            foreach ($objects as $object) {
+                $ret[] = $this->serialize($object);
+            }
 
             return array(
                 'status' => 200,
