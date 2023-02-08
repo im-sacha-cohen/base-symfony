@@ -8,7 +8,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-class AbstractRestController extends AbstractController
+abstract class AbstractRestController extends AbstractController
 {
     public function __construct(
         protected AbstractRestService $service

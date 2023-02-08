@@ -8,7 +8,7 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 
-class AbstractRestService {
+abstract class AbstractRestService {
     public function __construct(
         protected EntityManagerInterface $emi,
         protected ServiceEntityRepository $repo,
