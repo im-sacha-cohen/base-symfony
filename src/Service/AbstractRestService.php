@@ -55,7 +55,7 @@ abstract class AbstractRestService {
         
         if ($objects !== null) {
             $ret = [];
-            
+
             foreach ($objects as $object) {
                 $ret[] = $this->serialize($object);
             }
@@ -78,15 +78,11 @@ abstract class AbstractRestService {
      * @return array
      */
     public function serialize(object $object): array {
-        $ret = [];
-
         if (method_exists($object, 'jsonSerialize')) {
-            $ret[] = $object->jsonSerialize();
+            return $object->jsonSerialize();
         } else {
-            $ret[] = $this->normalizer->normalize($object, 'json');
+            return $this->normalizer->normalize($object, 'json');
         }
-
-        return $ret;
     }
 
     /**
