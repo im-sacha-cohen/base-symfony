@@ -2,8 +2,10 @@
 
 namespace App\Service;
 
+use Error;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -13,7 +15,8 @@ abstract class AbstractRestService {
         protected EntityManagerInterface $emi,
         protected ServiceEntityRepository $repo,
         protected NormalizerInterface $normalizer,
-        protected DenormalizerInterface $denormalizer
+        protected DenormalizerInterface $denormalizer,
+        protected ValidatorInterface $validator
     )
     { }
 
@@ -51,11 +54,7 @@ abstract class AbstractRestService {
         $objects = $this->repo->findBy($criteria, $orderBy, $limit);
 
         foreach ($objects as $object) {
-            if (method_exists($object, 'jsonSerialize')) {
-                $ret[] = $object->jsonSerialize();
-            } else {
-                $ret[] = $this->normalizer->normalize($object, 'json');
-            }
+            $ret[] = $this->serialize($object);
 
             return array(
                 'status' => 200,
@@ -70,6 +69,23 @@ abstract class AbstractRestService {
     }
 
     /**
+     * @param object $object
+     * 
+     * @return array
+     */
+    public function serialize(object $object): array {
+        $ret = [];
+
+        if (method_exists($object, 'jsonSerialize')) {
+            $ret[] = $object->jsonSerialize();
+        } else {
+            $ret[] = $this->normalizer->normalize($object, 'json');
+        }
+
+        return $ret;
+    }
+
+    /**
      * @return mixed
      */
     public function findOneBy(array $criteria, ?array $orderBy = null, ?bool $returnSerialized = false): mixed {
@@ -77,11 +93,7 @@ abstract class AbstractRestService {
 
         if ($object !== null) {
             if ($returnSerialized) {
-                if (method_exists($object, 'jsonSerialize')) {
-                    $ret[] = $object->jsonSerialize();
-                } else {
-                    $ret[] = $this->normalizer->normalize($object, 'json');
-                }
+                $ret[] = $this->serialize($object);
             } else {
                 return $object;
             }
@@ -100,6 +112,32 @@ abstract class AbstractRestService {
 
             return null;
         }
+    }
+
+    /**
+     * @param Request $request
+     * 
+     * @return object
+     */
+    public function new(Request $request): object {
+        $data = $this->getDataFromRequest($request);
+        $object = $this->denormalize($data);
+
+        $errors = $this->validator->validate($object);
+        
+        if (count($errors) > 0) {
+            $tmp = [];
+
+            foreach($errors as $error) {
+                $tmp[] = $error->getMessage();
+            }
+
+            throw new Error(implode(", ", $tmp));
+        }
+
+        $this->create($object);
+
+        return $object;
     }
 
     /**

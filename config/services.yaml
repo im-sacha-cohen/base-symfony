@@ -34,3 +34,27 @@ services:
     App\EventListener\ExceptionListener:
         tags:
             - { name: kernel.event_listener, event: kernel.exception }
+            
+    App\EventListener\GlobalProperyListener:
+        tags:
+            -   # these are the options required to define the entity listener
+                name: 'doctrine.event_listener'
+                event: 'prePersist'
+                # listeners can define their priority in case multiple subscribers or listeners are associated
+                # to the same event (default priority = 0; higher numbers = listener is run earlier)
+                priority: 500
+
+                # you can also restrict listeners to a specific Doctrine connection
+                connection: 'default'
+
+    App\EventListener\UserListener:
+        tags:
+            -   # these are the options required to define the entity listener
+                name: 'doctrine.event_listener'
+                event: 'prePersist'
+                # listeners can define their priority in case multiple subscribers or listeners are associated
+                # to the same event (default priority = 0; higher numbers = listener is run earlier)
+                priority: 500
+
+                # you can also restrict listeners to a specific Doctrine connection
+                connection: 'default'

@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Service\AbstractRestService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -29,5 +30,13 @@ abstract class AbstractRestController extends AbstractController
         $get = $this->service->findOneBy(['secretId' => $secretId]);
 
         return new JsonResponse($get, 200);
+    }
+
+    #[Route('', name: '_new', methods: ['OPTIONS', 'POST'])]
+    public function new(Request $request): JsonResponse
+    {
+        $post = $this->service->new($request);
+
+        return new JsonResponse($this->service->serialize($post), 201);
     }
 }

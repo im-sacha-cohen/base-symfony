@@ -2,10 +2,11 @@
 
 namespace App\Entity;
 
-use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use App\Repository\UserRepository;
+use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
@@ -16,6 +17,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $id = null;
 
     #[ORM\Column(length: 180, unique: true)]
+    #[Assert\NotBlank(message: 'The email key should not be blank.')]
+    #[Assert\Email(
+        message: 'The email {{ value }} is not a valid email.',
+    )]
     private ?string $email = null;
 
     #[ORM\Column]
@@ -25,7 +30,30 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @var string The hashed password
      */
     #[ORM\Column]
+    #[Assert\NotBlank(message: 'The password key should not be blank.')]
+    #[Assert\NotCompromisedPassword]
     private ?string $password = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $secretId = null;
+
+    #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'The firstName key should not be blank.')]
+    private ?string $firstName = null;
+
+    #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'The lastName key should not be blank.')]
+    private ?string $lastName = null;
+
+    public function jsonSerialize(): array {
+        return array(
+            'secretId' => $this->getSecretId(),
+            'firstName' => $this->getFirstName(),
+            'lastName' => $this->getLastName(),
+            'email' => $this->getEmail(),
+            'roles' => $this->getRoles()
+        );
+    }
 
     public function getId(): ?int
     {
@@ -95,5 +123,41 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         // If you store any temporary, sensitive data on the user, clear it here
         // $this->plainPassword = null;
+    }
+
+    public function getSecretId(): ?string
+    {
+        return $this->secretId;
+    }
+
+    public function setSecretId(string $secretId): self
+    {
+        $this->secretId = $secretId;
+
+        return $this;
+    }
+
+    public function getFirstName(): ?string
+    {
+        return $this->firstName;
+    }
+
+    public function setFirstName(string $firstName): self
+    {
+        $this->firstName = $firstName;
+
+        return $this;
+    }
+
+    public function getLastName(): ?string
+    {
+        return $this->lastName;
+    }
+
+    public function setLastName(string $lastName): self
+    {
+        $this->lastName = $lastName;
+
+        return $this;
     }
 }
